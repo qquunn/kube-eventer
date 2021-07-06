@@ -62,13 +62,21 @@ func (sink *kafkaSink) ProduceKafkaMessage(msgData interface{}) error {
 		return fmt.Errorf("failed to transform the items to json : %s", err)
 	}
 
-	_, _, err = sink.producer.SendMessage(&kafka.ProducerMessage{
-		Topic: sink.dataTopic,
-		Key:   nil,
-		Value: kafka.ByteEncoder(msgJson),
+	// 重试10分钟
+	retryTimes("发送kafka消息", 60, 10*time.Second, func() error {
+		_, _, err = sink.producer.SendMessage(&kafka.ProducerMessage{
+			Topic: sink.dataTopic,
+			Key:   nil,
+			Value: kafka.ByteEncoder(msgJson),
+		})
+		if err != nil {
+			klog.Warning("failed to produce message to %s: %s, %s", sink.dataTopic, err, string(msgJson))
+		}
+		return err
 	})
+
 	if err != nil {
-		return fmt.Errorf("failed to produce message to %s: %s", sink.dataTopic, err)
+		return fmt.Errorf("failed to produce message to %s: %s, %s", sink.dataTopic, err, string(msgJson))
 	}
 	end := time.Now()
 	klog.V(4).Infof("Exported %d data to kafka in %s", len(msgJson), end.Sub(start))
@@ -81,6 +89,18 @@ func (sink *kafkaSink) Name() string {
 
 func (sink *kafkaSink) Stop() {
 	sink.producer.Close()
+}
+
+func retryTimes(name string, tryTimes int, sleep time.Duration, callback func() error) (err error) {
+	for i := 1; i <= tryTimes; i++ {
+		err = callback()
+		if err == nil {
+			return nil
+		}
+		klog.Warningf("[%v]失败，第%v次重试， 错误信息:%s \n", name, i, err)
+		time.Sleep(sleep)
+	}
+	return err
 }
 
 func getTopic(opts map[string][]string, topicType string) (string, error) {
