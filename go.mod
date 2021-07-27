@@ -3,7 +3,7 @@ module github.com/AliyunContainerService/kube-eventer
 go 1.12
 
 require (
-	github.com/Shopify/sarama v1.22.1
+	github.com/Shopify/sarama v1.28.0
 	github.com/alibabacloud-go/eventbridge-sdk v1.2.6
 	github.com/alibabacloud-go/tea-utils v1.3.7
 	github.com/aws/aws-sdk-go v1.19.6
@@ -22,7 +22,7 @@ require (
 	github.com/riemann/riemann-go-client v0.4.0
 	github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9
 	github.com/smartystreets/gunit v1.0.0 // indirect
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.7.0
 	gopkg.in/olivere/elastic.v3 v3.0.75
 	gopkg.in/olivere/elastic.v5 v5.0.81
 	gopkg.in/olivere/elastic.v6 v6.2.23
